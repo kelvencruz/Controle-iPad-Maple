@@ -11,6 +11,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/emprestar':     'Empréstimos',
   '/devolver':      'Devoluções',
   '/dispositivos':  'Dispositivos',
+  '/usuarios':      'Usuários',
   '/historico':     'Histórico',
   '/relatorios':    'Relatórios',
   '/alertas':       'Alertas',
@@ -22,6 +23,7 @@ const ROUTE_SUBTITLES: Record<string, string> = {
   '/emprestar':     'Registrar novo empréstimo',
   '/devolver':      'Registrar devolução de iPad',
   '/dispositivos':  'Gerenciar dispositivos cadastrados',
+  '/usuarios':      'Gerenciar usuários com acesso ao sistema',
   '/historico':     'Histórico de empréstimos',
   '/relatorios':    'Relatórios e estatísticas',
   '/alertas':       'Empréstimos em atraso ou próximos do prazo',
@@ -32,11 +34,7 @@ export default function GlobalHeader() {
   const pathname = usePathname()
   const { isDark, toggle } = useDarkMode()
 
-  // null no SSR — populado apenas no cliente via useEffect.
-  // Evita hydration mismatch: servidor e cliente renderizam o mesmo markup vazio,
-  // e o relógio aparece somente após a montagem.
   const [now, setNow] = useState<Date | null>(null)
-
   const [overdueCount, setOverdueCount] = useState(0)
 
   useEffect(() => {
@@ -123,7 +121,7 @@ export default function GlobalHeader() {
         )}
       </button>
 
-      {/* Data e hora — oculto no mobile, invisível até hidratação */}
+      {/* Data e hora */}
       <div className="text-right text-xs text-on-surface-variant hidden md:block w-[110px]">
         {now && (
           <>

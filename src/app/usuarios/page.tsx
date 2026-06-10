@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AllowedUser {
-  id: string
   email: string
   name: string | null
   created_at: string
@@ -247,7 +246,7 @@ export default function UsuariosPage() {
 
     const { data, error } = await sb
       .from('allowed_users')
-      .select('id, email, name, created_at')
+      .select('email, name, created_at')
       .order('name', { ascending: true })
 
     if (error) {
@@ -291,7 +290,7 @@ export default function UsuariosPage() {
     const { error } = await sb
       .from('allowed_users')
       .delete()
-      .eq('id', removeTarget.id)
+      .eq('email', removeTarget.email)
 
     if (error) {
       toast.error('Erro ao remover usuário.')
@@ -408,7 +407,7 @@ export default function UsuariosPage() {
               ) : (
                 paginated.map((user) => (
                   <tr
-                    key={user.id}
+                    key={user.email}
                     className="transition-colors hover:bg-surface-container/50"
                   >
                     <td className="px-5 py-3.5">
@@ -455,7 +454,7 @@ export default function UsuariosPage() {
           ) : (
             paginated.map((user) => (
               <div
-                key={user.id}
+                key={user.email}
                 className="rounded-2xl border border-outline-variant bg-surface-container p-4"
               >
                 <div className="flex items-center justify-between gap-3">
