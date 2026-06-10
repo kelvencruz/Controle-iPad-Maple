@@ -376,7 +376,7 @@ export default function HistoricoPage() {
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const totalPages   = Math.ceil(total / PAGE_SIZE)
+  const totalPages = search.trim() ? 1 : Math.ceil(total / PAGE_SIZE)
   const hasError     = networkError || !!serverError
   const isEmpty      = !loading && !hasError && loans.length === 0
   // INC-69: quando há busca ativa, exibe contagem filtrada localmente
