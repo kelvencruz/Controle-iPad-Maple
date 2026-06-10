@@ -41,12 +41,12 @@ function LoginForm() {
     <div className="flex h-dvh flex-col items-center justify-center bg-[--color-surface] px-4">
       <div className="w-full max-w-sm">
 
-        {/* Logo / ícone */}
+        {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[--color-primary-container]">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--color-on-primary-container)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2" />
-              <circle cx="12" cy="17.5" r="1" fill="var(--color-on-primary-container)" stroke="none" />
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" aria-hidden="true">
+              <rect x="5" y="2" width="14" height="20" rx="2" stroke="var(--color-on-primary-container)" strokeWidth="1.5" />
+              <circle cx="12" cy="17.5" r="1" fill="var(--color-on-primary-container)" />
             </svg>
           </div>
           <div className="text-center">

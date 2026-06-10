@@ -30,13 +30,7 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-on-surface antialiased">
         <DarkModeProvider>
-          <div className="flex h-screen overflow-hidden">
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </div>
-          {/*
-            offset mobile: 96px = 80px nav + 16px folga
-            offset desktop: 24px padrão
-          */}
+          <ConditionalLayout>{children}</ConditionalLayout>
           <Toaster
             position="bottom-right"
             toastOptions={{
