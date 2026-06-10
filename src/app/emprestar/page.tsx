@@ -499,13 +499,15 @@ export default function EmprestimosPage() {
               <div className="px-4 pt-3 pb-1 flex items-center justify-between">
                 <span className="text-xs text-on-surface-variant">{filteredDevices.length} iPads disponíveis</span>
                 <button
-                  onClick={() => {
-                    const all = filteredDevices.map((d) => d.id)
-                    const allSelected = all.every((id) => selectedDevices.includes(id))
-                    setSelectedDevices(allSelected
-                      ? selectedDevices.filter((id) => !all.includes(id))
-                      : [...new Set([...selectedDevices, ...all])])
-                  }}
+                                        onClick={() => {
+                        const all = filteredDevices.map((d) => d.id)
+                        setSelectedDevices((prev) => {
+                          const allSelected = all.every((id) => prev.includes(id))
+                          return allSelected
+                            ? prev.filter((id) => !all.includes(id))
+                            : [...new Set([...prev, ...all])]
+                        })
+                      }}
                   className="text-xs font-medium text-on-secondary-container hover:opacity-70 transition-opacity"
                 >
                   {filteredDevices.every((d) => selectedDevices.includes(d.id)) ? 'Desmarcar todos' : 'Marcar todos'}
