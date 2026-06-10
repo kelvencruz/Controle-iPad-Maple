@@ -34,6 +34,8 @@ const EMPTY_FORM: DeviceFormData = {
   notes: '',
 }
 
+const PAGE_SIZE = 15
+
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ device }: { device: Device }) {
@@ -61,6 +63,68 @@ function StatusBadge({ device }: { device: Device }) {
   )
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function Pagination({
+  page,
+  totalPages,
+  onPage,
+}: {
+  page: number
+  totalPages: number
+  onPage: (p: number) => void
+}) {
+  if (totalPages <= 1) return null
+
+  return (
+    <div className="flex items-center justify-center gap-1 mt-4">
+      <button
+        onClick={() => onPage(page - 1)}
+        disabled={page === 1}
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-current" strokeWidth="2">
+          <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+        const isEdge = p === 1 || p === totalPages
+        const isNear = Math.abs(p - page) <= 1
+        if (!isEdge && !isNear) {
+          if (p === 2 || p === totalPages - 1) {
+            return <span key={p} className="w-8 text-center text-xs text-on-surface-variant">…</span>
+          }
+          return null
+        }
+        return (
+          <button
+            key={p}
+            onClick={() => onPage(p)}
+            className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+              p === page
+                ? 'bg-primary text-on-primary'
+                : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+            }`}
+          >
+            {p}
+          </button>
+        )
+      })}
+
+      <button
+        onClick={() => onPage(page + 1)}
+        disabled={page === totalPages}
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-current" strokeWidth="2">
+          <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 function DeviceModal({
@@ -68,7 +132,7 @@ function DeviceModal({
   onClose,
   onSaved,
 }: {
-  device: Device | null // null = novo
+  device: Device | null
   onClose: () => void
   onSaved: () => void
 }) {
@@ -160,7 +224,6 @@ function DeviceModal({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Nome */}
             <div>
               <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">
                 Nome <span className="text-error">*</span>
@@ -175,7 +238,6 @@ function DeviceModal({
               />
             </div>
 
-            {/* QR Code */}
             <div>
               <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">
                 QR Code <span className="text-error">*</span>
@@ -189,7 +251,6 @@ function DeviceModal({
               />
             </div>
 
-            {/* Serial */}
             <div>
               <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">Serial</label>
               <input
@@ -201,7 +262,6 @@ function DeviceModal({
               />
             </div>
 
-            {/* Localização */}
             <div>
               <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">Localização</label>
               <input
@@ -214,7 +274,6 @@ function DeviceModal({
             </div>
           </div>
 
-          {/* Observações */}
           <div>
             <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">Observações</label>
             <textarea
@@ -316,6 +375,7 @@ export default function DispositivosPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'available' | 'loaned' | 'inactive'>('all')
+  const [page, setPage] = useState(1)
 
   const [modalDevice, setModalDevice] = useState<Device | null | 'new'>(null)
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
@@ -325,13 +385,11 @@ export default function DispositivosPage() {
     setLoading(true)
     const sb = createClient()
 
-    // Busca todos os devices
     const { data: devicesData } = await sb
       .from('devices')
       .select('id, name, qr_code, serial, location, notes, active, created_at')
       .order('name')
 
-    // Busca IDs com empréstimo ativo
     const { data: activeLoans } = await sb
       .from('loans')
       .select('device_id')
@@ -361,6 +419,11 @@ export default function DispositivosPage() {
     loadDevices()
   }, [loadDevices])
 
+  // Reset para página 1 quando filtros mudam
+  useEffect(() => {
+    setPage(1)
+  }, [search, filterStatus])
+
   // Métricas
   const total = devices.length
   const available = devices.filter((d) => d.active && !d.active_loan).length
@@ -383,6 +446,11 @@ export default function DispositivosPage() {
 
     return matchSearch && matchStatus
   })
+
+  // Paginação
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   // Ações
   const handleConfirmAction = async () => {
@@ -502,7 +570,6 @@ export default function DispositivosPage() {
             )}
           </div>
 
-          {/* Filtro status */}
           <div className="flex gap-1.5 p-1 rounded-xl border border-outline-variant bg-surface-container">
             {([
               { key: 'all', label: 'Todos' },
@@ -556,7 +623,7 @@ export default function DispositivosPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((device) => (
+                paginated.map((device) => (
                   <tr key={device.id} className={`transition-colors hover:bg-surface-container/50 ${!device.active ? 'opacity-50' : ''}`}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -641,7 +708,7 @@ export default function DispositivosPage() {
               {search || filterStatus !== 'all' ? 'Nenhum dispositivo encontrado.' : 'Nenhum dispositivo cadastrado.'}
             </div>
           ) : (
-            filtered.map((device) => (
+            paginated.map((device) => (
               <div
                 key={device.id}
                 className={`rounded-2xl border border-outline-variant bg-surface-container p-4 transition-opacity ${!device.active ? 'opacity-50' : ''}`}
@@ -711,13 +778,18 @@ export default function DispositivosPage() {
           )}
         </div>
 
-        {/* Rodapé com contagem */}
+        {/* Paginação + rodapé */}
         {!loading && filtered.length > 0 && (
-          <p className="text-xs text-on-surface-variant text-center mt-4">
-            {filtered.length} dispositivo{filtered.length !== 1 ? 's' : ''}
-            {(search || filterStatus !== 'all') && ` · ${total} no total`}
-          </p>
+          <>
+            <Pagination page={safePage} totalPages={totalPages} onPage={setPage} />
+            <p className="text-xs text-on-surface-variant text-center mt-3">
+              {filtered.length} dispositivo{filtered.length !== 1 ? 's' : ''}
+              {(search || filterStatus !== 'all') && ` · ${total} no total`}
+              {totalPages > 1 && ` · página ${safePage} de ${totalPages}`}
+            </p>
+          </>
         )}
+
       </div>
     </div>
   )
