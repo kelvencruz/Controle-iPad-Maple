@@ -7,6 +7,12 @@ import ConditionalLayout from '@/components/conditionallayout'
 export const metadata: Metadata = {
   title: 'Controle de iPads',
   description: 'Sistema de controle de empréstimo de iPads',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
+  themeColor: '#1c1b1b',
 };
 
 export default function RootLayout({
@@ -17,10 +23,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1c1b1b" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
