@@ -13,6 +13,8 @@ import {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20
+// INC-S25-03: limite de segurança para busca sem paginação
+const SEARCH_LIMIT = 500
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +106,7 @@ function exportCsv(loans: HistoricoLoan[]) {
 
 // ─── INC-70: query builder centralizado ──────────────────────────────────────
 // Elimina duplicação entre fetchLoans e handleExportCsv.
-// paginate=true aplica .range(); paginate=false busca tudo (para CSV).
+// paginate=true aplica .range(); paginate=false busca tudo (para CSV e busca ativa).
 
 function buildLoansQuery(
   supabase: ReturnType<typeof createClient>,
@@ -114,6 +116,7 @@ function buildLoansQuery(
     reason: string
     page: number
     paginate: boolean
+    limit?: number
   },
 ) {
   // INC-69: busca de texto movida inteiramente para o cliente —
@@ -149,6 +152,9 @@ function buildLoansQuery(
 
   if (opts.paginate) {
     query = query.range(opts.page * PAGE_SIZE, (opts.page + 1) * PAGE_SIZE - 1)
+  } else if (opts.limit) {
+    // INC-S25-03: cap de segurança quando busca está ativa
+    query = query.limit(opts.limit)
   }
 
   return query
@@ -279,6 +285,8 @@ export default function HistoricoPage() {
   const [loans, setLoans] = useState<HistoricoLoan[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
+  // INC-S25-03: avisa quando count do período excede SEARCH_LIMIT
+  const [searchCapped, setSearchCapped] = useState(false)
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState<LoanStatus>('all')
@@ -309,12 +317,20 @@ export default function HistoricoPage() {
     setLoading(true)
     setNetworkError(false)
     setServerError(null)
+    setSearchCapped(false)
 
     const supabase = createClient()
+    const isSearching = q.trim().length > 0
 
-    // INC-70: usa buildLoansQuery — sem duplicação com handleExportCsv
+    // INC-S25-03: quando busca está ativa, busca sem .range() para o filtro
+    // client-side operar sobre o período completo (cap: SEARCH_LIMIT registros).
     const { data, error: fetchErr, count } = await buildLoansQuery(supabase, {
-      status, period, reason, page: currentPage, paginate: true,
+      status,
+      period,
+      reason,
+      page: currentPage,
+      paginate: !isSearching,
+      limit: isSearching ? SEARCH_LIMIT : undefined,
     })
 
     // Descarta se um fetch mais recente já foi disparado
@@ -333,6 +349,11 @@ export default function HistoricoPage() {
     const mapped = mapLoans(data ?? [])
     // INC-69: filtro de texto no cliente
     const finalLoans = applyTextFilter(mapped, q)
+
+    // INC-S25-03: avisa se o período tem mais registros do que o cap de busca
+    if (isSearching && (count ?? 0) > SEARCH_LIMIT) {
+      setSearchCapped(true)
+    }
 
     setLoans(finalLoans)
     // INC-69: quando há busca ativa, count do banco não reflete o filtro de texto —
@@ -464,6 +485,18 @@ export default function HistoricoPage() {
           )}
         </div>
 
+        {/* INC-S25-03: aviso de cap de busca */}
+        {searchCapped && !loading && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-warning/10 border border-warning/20 text-xs text-warning">
+            <svg className="w-3.5 h-3.5 flex-shrink-0 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <span>
+              O período selecionado tem mais de {SEARCH_LIMIT} registros. A busca está limitada aos {SEARCH_LIMIT} mais recentes — refine os filtros de período ou motivo para resultados completos.
+            </span>
+          </div>
+        )}
+
         {/* INC-68: filtros em grupos independentes — separadores não somem em flex-wrap */}
         <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
 
@@ -517,7 +550,7 @@ export default function HistoricoPage() {
         {serverError && !networkError && (
           <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-error-container/20 border border-error/20 text-sm text-error">
             <svg className="w-4 h-4 mt-0.5 flex-shrink-0 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <path strokeLinecap="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 00-3.42 0z" />
             </svg>
             <p>{serverError}</p>
           </div>
