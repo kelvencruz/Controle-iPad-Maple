@@ -247,7 +247,7 @@ export default function Dashboard() {
     <div className="p-4 md:p-6 space-y-4 md:space-y-5 pb-24 md:pb-6">
 
       {/* Busca — visível apenas no mobile (desktop usa o GlobalHeader) */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 md:hidden">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
         <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0 fill-none stroke-current opacity-40" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" strokeLinecap="round"/></svg>
         <input
           type="text"
@@ -335,18 +335,7 @@ export default function Dashboard() {
             </a>
           </div>
 
-          {/* Busca desktop */}
-          <div className="hidden md:flex items-center gap-2 mx-5 mt-4 px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 w-64">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0 fill-none stroke-current opacity-40" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" strokeLinecap="round"/></svg>
-            <input
-              type="text"
-              placeholder="Buscar iPad ou usuário..."
-              className="bg-transparent outline-none flex-1 placeholder:opacity-60"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
+          
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
