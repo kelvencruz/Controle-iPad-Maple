@@ -300,15 +300,16 @@ export default function EmprestimosPage() {
   }
 
   const handleReset = () => {
-    setStep(1)
-    setBorrowerName('')
-    setSelectedDevices([])
-    setReason('')
-    setReasonDetail('')
-    setCustomDeadlineHours('')
-    setDeviceSearch('')
-    setSuccess(false)
-  }
+  setStep(1)
+  setBorrowerName('')
+  setSelectedDevices([])
+  setReason('')
+  setReasonDetail('')
+  setCustomDeadlineHours('')
+  setDeviceSearch('')
+  setSuccess(false)
+  loadDevices()
+}
 
   const filteredDevices = devices.filter((d) =>
     d.name.toLowerCase().includes(deviceSearch.toLowerCase())
