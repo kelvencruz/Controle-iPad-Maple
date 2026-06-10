@@ -2,12 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const BASE_URL = 'https://controle-ipads.vercel.app'
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=no_code`)
+    return NextResponse.redirect(`${BASE_URL}/login?error=no_code`)
   }
 
   const cookieStore = await cookies()
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
 
   if (exchangeError) {
     console.error('[auth/callback] exchangeCodeForSession:', exchangeError.message)
-    return NextResponse.redirect(`${origin}/login?error=auth_error`)
+    return NextResponse.redirect(`${BASE_URL}/login?error=auth_error`)
   }
 
   const {
@@ -42,20 +44,19 @@ export async function GET(request: NextRequest) {
 
   if (!user?.email) {
     await supabase.auth.signOut()
-    return NextResponse.redirect(`${origin}/login?error=no_email`)
+    return NextResponse.redirect(`${BASE_URL}/login?error=no_email`)
   }
 
-  // Verificar se o email está na lista de usuários permitidos
   const { data: allowed } = await supabase
     .from('allowed_users')
     .select('email')
-    .eq('email', user.email)
+    .eq('email', user.email.toLowerCase())
     .maybeSingle()
 
   if (!allowed) {
     await supabase.auth.signOut()
-    return NextResponse.redirect(`${origin}/login?error=not_allowed`)
+    return NextResponse.redirect(`${BASE_URL}/login?error=not_allowed`)
   }
 
-  return NextResponse.redirect(`${origin}/dashboard`)
+  return NextResponse.redirect(`${BASE_URL}/dashboard`)
 }

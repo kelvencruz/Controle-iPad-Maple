@@ -32,7 +32,7 @@ function LoginForm() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `https://controle-ipads.vercel.app/auth/callback`,
         // queryParams: { hd: 'suadomain.com.br' }, // ← descomentar para restringir ao domínio Google Workspace
       },
     })
